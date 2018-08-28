@@ -20,11 +20,11 @@ The goals / steps of this project are the following:
 [image1]: ./output_images/camera_calibration.png
  "Undistorted"
 [image2]: ./output_images/car_distortion.png "Road Transformed"
-[image3]: ./output_images/binary.png "Binary Example"
+[image3]: ./output_images/binary.png "Binary Example" 
 [image4]: ./output_images/perspective.png "Warp Example"
 [image5]: ./output_images/lane.png "Fit Visual"
 [image6]: ./output_images/output.png "Output"
-[video1]: ./project_video.mp4 "Video"
+[video1]: ./project_video.mp4 "Video" 
 
 ## [Rubric](https://review.udacity.com/#!/rubrics/571/view) Points
 
@@ -54,7 +54,7 @@ I then used the output `objpoints` and `imgpoints` to compute the camera calibra
 
 #### 1. Provide an example of a distortion-corrected image.
 
-In the above step, I save the camera calibration parameter by pickle, and apply it to the test images(code can be found at pipeline_image.py, method is named undistort), here is one of them:
+In the above step, I save the camera calibration parameter by pickle, and apply it to the test images(code can be found at pipeline_image.py, method is named undistort), here is one of them(please take a notice at the traffic sign):
 
 ![alt text][image2]
 

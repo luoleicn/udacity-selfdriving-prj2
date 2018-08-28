@@ -76,7 +76,6 @@ def find_lane_pixels(binary_warped, convolve_window_width=50):
     convolve_window = np.ones(convolve_window_width)
     leftx_base = np.argmax(np.convolve(convolve_window, histogram[:midpoint])) - convolve_window_width/2
     rightx_base = np.argmax(np.convolve(convolve_window, histogram[midpoint:])) + midpoint - convolve_window_width/2
-    print rightx_base, "right_base"
 
     # HYPERPARAMETERS
     # Choose the number of sliding windows
@@ -186,16 +185,28 @@ def find_lane_pixels(binary_warped, convolve_window_width=50):
     return out_img, left_fitx, ploty, right_fitx, ploty
 
 
-def cal_curvature(left_fit_cr, right_fit_cr, ploty):
+def cal_curvature_and_offset(left_fitx, right_fitx, ploty):
+
+    ym_per_pix = 30.0/720 # meters per pixel in y dimension
+    xm_per_pix = 3.7/700 # meters per pixel in x dimension
+
     y_eval = np.max(ploty)
     # Calculation of R_curve (radius of curvature)
     left_curverad, right_curverad = 0, 0
-    if len(left_fit_cr) != 0:
-        left_curverad = ((1 + (2*left_fit_cr[0]*y_eval + left_fit_cr[1])**2)**1.5) / np.absolute(2*left_fit_cr[0])
-    if len(right_fit_cr) != 0:
-        right_curverad = ((1 + (2*right_fit_cr[0]*y_eval + right_fit_cr[1])**2)**1.5) / np.absolute(2*right_fit_cr[0])
+    if len(left_fitx) != 0:
+        left_fit_cr = np.polyfit(ploty*ym_per_pix, left_fitx*xm_per_pix, 2)
+        left_curverad = ((1 + (2*left_fit_cr[0]*y_eval*ym_per_pix + left_fit_cr[1])**2)**1.5) / np.absolute(2*left_fit_cr[0])
+    if len(right_fitx) != 0:
+        right_fit_cr = np.polyfit(ploty*ym_per_pix, right_fitx*xm_per_pix, 2)
+        right_curverad = ((1 + (2*right_fit_cr[0]*y_eval*ym_per_pix + right_fit_cr[1])**2)**1.5) / np.absolute(2*right_fit_cr[0])
 
-    return left_curverad, right_curverad
+
+    lane_center = (right_fitx[-1] + left_fitx[-1])/2
+    center_offset_pixels = abs(len(right_fitx) - lane_center)
+    offset = xm_per_pix*center_offset_pixels
+
+    return (left_curverad + right_curverad) * 1.0 / 2, offset
+
 
 def map_lane(img, src, dst, left_fitx, right_fitx, ploty, width=10, alpha=0.7):
 
@@ -230,6 +241,13 @@ def map_lane(img, src, dst, left_fitx, right_fitx, ploty, width=10, alpha=0.7):
     output = perspective(output, dst, src)
 
     output = cv2.addWeighted(img, alpha, output, 2.0, 0.0);
+
+    curvature, offset = cal_curvature_and_offset(left_fitx, right_fitx, ploty)
+    curvature_string = "curvature: " + str(curvature) + " m"
+    offset_string = "offset: " + str(offset) + " m"
+    cv2.putText(output, curvature_string , (100, 90), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255,255,255), thickness=2)
+    cv2.putText(output, offset_string, (100, 150), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255,255,255), thickness=2)
+
     return output
 
 def color_filter(image):
@@ -284,9 +302,9 @@ if __name__ == "__main__":
     dist_pickle = pickle.load(open("./calibration.pickle", "rb"))
     
     #img = cv2.imread('./test_images/straight_lines1.jpg')
-    #img = mpimg.imread('./test_images/test5.jpg')
+    img = mpimg.imread('./test_images/test5.jpg')
     #img = mpimg.imread('./mpv-shot0003.jpg')
-    img = mpimg.imread('/Users/luolei/Desktop/mpv-shot0025.jpg')
+    #img = mpimg.imread('/Users/luolei/Desktop/mpv-shot0025.jpg')
     undistort_img = undistort(img, dist_pickle)
     #binary_img = binary(undistort_img, s_thresh=(80, 255), g_thresh=(0.7, 1.3), mag_thresh=(50, 100))
     
@@ -309,10 +327,10 @@ if __name__ == "__main__":
     
     lane_img, left_fitx, ploty, right_fitx, ploty = find_lane_pixels(warped_binary_img)
 
-    left_curverad, right_curverad = cal_curvature(left_fitx, right_fitx, ploty)
-    
     output = map_lane(img, src, dst, left_fitx, right_fitx, ploty)
     
+    plt.imshow(output)
+    """
     f, ((ax1, ax2, ax3), (ax4, ax5, ax6)) = plt.subplots(2, 3, figsize=(15,7))
     ax1.imshow(img)
     ax2.imshow(warped_img)
@@ -323,5 +341,6 @@ if __name__ == "__main__":
     #ax4.plot(right_fitx, ploty, color='yellow')
     ax5.imshow(output)
     ax2.set_title('Processed Image', fontsize=30)
+    """
     plt.show()
 

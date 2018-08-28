@@ -79,8 +79,6 @@ def process_image(img):
     plt.show()
     """
     
-    left_curverad, right_curverad = cal_curvature(avg_left_fitx, avg_right_fitx, ploty)
-    
     output = map_lane(img, src, dst, avg_left_fitx, avg_right_fitx, ploty)
 
     return output
@@ -90,7 +88,7 @@ script, input_video_fn, output_video_fn = sys.argv
 
 dist_pickle = pickle.load(open("./calibration.pickle", "rb"))
 
-num_frame  = 5
+num_frame  = 15
 lane_margin = -1
 stack_left_fits = []
 stack_right_fits = []
