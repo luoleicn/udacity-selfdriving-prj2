@@ -238,6 +238,11 @@ def map_lane(img, src, dst, left_fitx, right_fitx, ploty, width=10, alpha=0.7):
                     x_arr.append(v + i)
             output[y_arr, x_arr] = [255, 0, 0]
 
+    left_line_window = np.array(np.transpose(np.vstack([left_fitx, ploty])))
+    right_line_window = np.array(np.flipud(np.transpose(np.vstack([right_fitx, ploty]))))
+    line_points = np.vstack((left_line_window, right_line_window))
+    cv2.fillPoly(output, np.int_([line_points]), [0,255, 0])
+
     output = perspective(output, dst, src)
 
     output = cv2.addWeighted(img, alpha, output, 2.0, 0.0);
